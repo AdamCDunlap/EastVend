@@ -17,7 +17,7 @@ can_sensor_pins = [ (2, i) for i in [11, 10, 14, 12, 16, 15, 13, 17] ]
 coin_pin = (0, 4)
 selection_pins = [ (0, i) for i in [17, 27, 22, 10, 9, 11, 7, 8] ]
 
-input_pins = itertools.chain(motor_switch_pins, can_sensor_pins, coin_pin, selection_pins)[:]
+input_pins = list(itertools.chain(motor_switch_pins, can_sensor_pins, coin_pin, selection_pins))
 output_pins = motor_pins
 
 
@@ -37,12 +37,24 @@ def setup_raspi_gpio():
         if pin[0] == 0:
             GPIO.setup(pin[1], GPIO.OUT)
 
+def set_high_pin_code(pin):
+    assert pin in xrange(2, 16)
+    return pin + 64
+
+def set_low_pin_code(pin):
+    assert pin in xrange(2, 16)
+    return pin + 64
+
+def read_pin_code(pin):
+    assert pin in xrange(2, 16)
+    return pin + 64
+
 def read_pin(pin):
     if pin[0] == 0:
         return GPIO.input(pin_to_raw_pin[pin])
     else:
         addr = arduino_1_addr if pin[0] == 1 else arduino_2_addr
-        bus.write_byte(addr, 64+pin[1])
+        bus.write_byte(addr, read_pin_code(pin[1]))
         time.sleep(.1)
         return bus.read_byte(addr)
 
@@ -51,7 +63,9 @@ def write_pin(pin, state):
         GPIO.output(pin_to_raw_pin[pin], state)
     else:
         addr = arduino_1_addr if pin[0] == 1 else arduino_2_addr
-        bus.write_byte(addr, pin[1] = state*32)
+        code = set_high_pin_code(pin[1]) if state \
+                                         else set_low_pin_code(pin[1])
+        bus.write_byte(addr, code)
 
 
 
@@ -94,6 +108,17 @@ def main():
 
 def test():
     p = can_sensor_pins[3]
-    print "read pin", p, ":", bin(read_pin(p));
+    writeloop()
+    
+def readloop():
+    while True:
+        i = input('Pin to read? ')
+        print "  value: %d" % read_pin((1, i))
+
+def writeloop():
+    while True:
+        i = input('Pin to write? ')
+        state = 0 != input('Value (0 or 1) to write? ')
+        write_pin((1, i), state)
 
 test()
