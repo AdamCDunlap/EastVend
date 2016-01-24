@@ -37,16 +37,16 @@ def setup_raspi_gpio():
         if pin[0] == 0:
             GPIO.setup(pin[1], GPIO.OUT)
 
-def set_high_pin_code(pin):
-    assert pin in xrange(2, 16)
-    return pin + 64
-
-def set_low_pin_code(pin):
-    assert pin in xrange(2, 16)
-    return pin + 64
+def set_pin_code(pin, val):
+    ''' Gives the code for setting `pin` to `val`.
+    pin should be in [2,18]
+    val should be in [True, False]'''
+    assert pin in xrange(2, 19)
+    assert val in [True, False]
+    return pin + (32 if True else 0)
 
 def read_pin_code(pin):
-    assert pin in xrange(2, 16)
+    assert pin in xrange(2, 19)
     return pin + 64
 
 def read_pin(pin):
@@ -63,11 +63,8 @@ def write_pin(pin, state):
         GPIO.output(pin_to_raw_pin[pin], state)
     else:
         addr = arduino_1_addr if pin[0] == 1 else arduino_2_addr
-        code = set_high_pin_code(pin[1]) if state \
-                                         else set_low_pin_code(pin[1])
+        code set_pin_code(pin[1], state)
         bus.write_byte(addr, code)
-
-
 
 def valid_swipe_occured():
     # TODO
