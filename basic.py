@@ -4,59 +4,21 @@ import smbus
 
 import time
 
-# First element of tuple is device that the pin is on:
-# Pi is 0
-# Bottom arduino is 1
-# Top arduino is 2
-# Second element is the pin number on that device
-motor_switch_pins = [ (1, i) for i in [16, 17, 13, 12, 15, 10, 11] ]
-motor_pins = [ (1, i) for i in [2, 3, 8, 9, 4, 5, 6, 7] ]
-can_sensor_pins = [ (2, i) for i in [11, 10, 14, 12, 16, 15, 13, 17] ]
+motor_arduino_addr = 0x1c
+can_sensor_arduino_addr = 0x1d
 
 # TODO
-coin_pin = (0, 4)
-selection_pins = [ (0, i) for i in [17, 27, 22, 10, 9, 11, 7, 8] ]
-
-input_pins = list(itertools.chain(motor_switch_pins, can_sensor_pins, coin_pin, selection_pins))
-output_pins = motor_pins
-
-
-
-# I2C Addresses
-arduino_1_addr = 0x1c
-arduino_2_addr = 0x1d
-
+coin_pin = 4
+#pins that listen to input buttons
+selection_pins = [4, 17, 27, 22, 10, 9, 11]
+#chute correspondence: (1,2), 3, 4, 5, 6, 7 8
+#so the random button shares two chutes, 1 and 2
 
 bus = smbus.SMBus(1)
 
 def setup_raspi_gpio():
-    for pin in input_pins:
-        if pin[0] == 0:
-            GPIO.setup(pin[1], GPIO.IN)
-    for pin in output_pins:
-        if pin[0] == 0:
-            GPIO.setup(pin[1], GPIO.OUT)
-
-def set_pin_code(pin, val):
-    ''' Gives the code for setting `pin` to `val`.
-    pin should be in [2,18]
-    val should be in [True, False]'''
-    assert pin in xrange(2, 19)
-    assert val in [True, False]
-    return pin + (32 if True else 0)
-
-def read_pin_code(pin):
-    assert pin in xrange(2, 19)
-    return pin + 64
-
-def read_pin(pin):
-    if pin[0] == 0:
-        return GPIO.input(pin_to_raw_pin[pin])
-    else:
-        addr = arduino_1_addr if pin[0] == 1 else arduino_2_addr
-        bus.write_byte(addr, read_pin_code(pin[1]))
-        time.sleep(.1)
-        return bus.read_byte(addr)
+    for pin in itertools.chain(selection_pins, coin_pin):
+        GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
 def write_pin(pin, state):
     if pin[0] == 0:
@@ -70,38 +32,48 @@ def valid_swipe_occured():
     # TODO
     return False
 
+# updates array of fullness
+# when we read a byte, we get a binary number
+# in which each bit is the fullnesss of a chute
+def update_chute_fullness(chute_fullness):
+    byte = bus.read_byte(can_sensor_arduino_addr)
+    bits = [int(x) for x in bin(byte)]
+    chute_fullness[:] = bits(byte)
 
+def get_selection():
+    for i, pin in enumerate(selection_pins):
+        if not GPIO.input(pin):
+            return i+1
+    return 0
 
 # States:
 # Idle / waiting for money/card swipe
 # Waiting for selection
 # Waiting for motor
 
-wait_for_money, wait_for_selection, wait_for_motor_switch_unpress, \
-    wait_for_motor_switch_press = range(4)
+wait_for_money, wait_for_selection = range(2)
 
 def main():
     setup_raspi_gpio()
 
     state = wait_for_money
+    # array that keeps track of which chutes are open (0 means no soda)
+    chute_fullness = [0, 0, 0, 0, 0, 0, 0, 0]
 
     selection = 0
 
     while True:
+        update_chute_fullness(chute_fullness)
         if state == wait_for_money:
-            if read_pin(coin_pin) or valid_swipe_occured():
+            if not GPIO.input(coin_pin) or valid_swipe_occured():
                 state = wait_for_selection
         elif state == wait_for_selection:
             selection = get_selection()
-            if selection > 0:
-                write_pin(motor_pins[selection-1], 1)
+            if selection == 1: #user chose random soda
+                selection = random.choice(0,1)
+            if selection > 0 and chute_fullness[selection]:
+                bus.write_byte(motor_arduino_addr, selection)
                 state = wait_for_motor_switch_press
-        elif state == wait_for_motor_switch_unpress:
-            if not read_pin(motor_switch_pins[selection-1]):
-                state = wait_for_motor_switch_press
-        elif state == wait_for_motor_switch_press:
-            if read_pin(motor_switch_pins[selection-1]):
-                state = wait_for_money
 
 def test():
     p = can_sensor_pins[3]
