@@ -1,0 +1,15 @@
+{
+  "name": "vend-east",
+  "version": "1.0.0",
+  "description": "Website for East Dorm vending machine",
+  "scripts": {
+    "start": "node Server.js"
+  },
+  "author": "Adam Dunlap",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.14.2",
+    "bootstrap": "^3.3.6",
+    "express": "latest"
+  }
+}

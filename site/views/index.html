@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>East Dorm Vending Machine</title>
+    <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.3.3/angular.min.js"></script>
+    <!-- FormValidation CSS file -->
+    <link rel="stylesheet" href="/vendor/formvalidation/dist/css/formValidation.min.css">
+    <script src="//cdnjs.cloudflare.com/ajax/libs/angular.js/1.3.3/angular-route.min.js"></script>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
+    <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
+    <!--<script src="script.js"></script>-->
+  </head>
+  <body>
+    <div>
+      <div>
+        <nav class="navbar navbar-inverse" role="navigation" style="padding-left:130px;">
+          <ul class="nav navbar-nav">
+            <li class="active"><a href="/">Home<span class="sr-only">(current)</span></a></li>
+            <!--<li><a href="/about">About us</a></li>-->
+            <!--<li><a href="/contact">Contact us</a></li>-->
+          </ul>
+        </nav>
+      </div>
+      <br>
+
+      <div class="container theme-showcase" role="main">
+
+        <h1>
+          East Dorm Vending Swipe Payment
+        </h1>
+
+        If you would like to be able to use your student ID to buy soda, fill out the below form. The Student ID number is used to recognize when your Student ID is swiped in the card reader. Once you swipe, an email will be sent to the provided address with several different payment methods. Failure to pay will result in you being tracked down.
+
+        <!--<div class="jumbotron">-->
+        <!--<iframe src="https://docs.google.com/forms/d/1tN3jZ9twPt40nz90_fUTq-6QIUSgP7Cf_gXiVeLHtm8/viewform?embedded=true" width="760" height="700" frameborder="0" marginheight="0" marginwidth="0">Loading Google Form...</iframe>-->
+        <form style="width:250px", id="idEmailForm", method='POST', action="/confirm">
+          <div class="form-group">
+            <label for="name">Name</label>
+            <input type="text" class="form-control" name="name" id="name" placeholder="East Dorm" required>
+          </div>
+          <div class="form-group">
+            <label for="studentID">Student ID Number</label>
+            <input type="number" class="form-control" name="studentID" id="studentID" placeholder="40000000" required>
+          </div>
+          <div class="form-group">
+            <label for="email">Email Address</label>
+            <input type="email" class="form-control" name="email" id="email" placeholder="east@hmc.edu" required>
+            <span id="helpBlock" class="help-block">Email must be a 5C School Email address. A confirmation email will be sent.</span>
+          </div>
+          <div class="radio">
+            <label>
+              <input type="radio" name="notifyFrequency" id="immediately" value="immediately" checked>
+              Immediatly
+            </label>
+          </div>
+          <div class="radio">
+            <label>
+              <input type="radio" name="notifyFrequency" id="daily" value="daily">
+              Daily
+            </label>
+          </div>
+          <div class="radio">
+            <label>
+              <input type="radio" name="notifyFrequency" id="weekly" value="weekly">
+              Weekly
+            </label>
+          </div>
+          <button type="submit" class="btn btn-default">Submit</button>
+        </form>
+      </div>
+    </div>
+  </body>
+</html>
+
+<script>
+$(document).ready(function() {
+    $('#idEmailForm').formValidation({
+        framework: 'bootstrap',
+        icon: {
+            valid: 'glyphicon glyphicon-ok',
+            invalid: 'glyphicon glyphicon-remove',
+            validating: 'glyphicon glyphicon-refresh'
+        },
+        fields: {
+            studentID: {
+                validators: {
+                    stringLength: {
+                        min: 6,
+                        max: 30,
+                        message: 'The name must be more than 6 and less than 30 characters long'
+                    },
+                    regexp: {
+                        regexp: /^[a-zA-Z0-9_]+$/,
+                        message: 'The name can only consist of alphabetical, number and underscore'
+                    }
+                }
+            },
+        }
+    });
+});
+</script>
