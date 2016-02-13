@@ -1,30 +1,17 @@
 var express = require("express");
-//var Datastore = require('nedb')
 var bodyParser = require('body-parser');
 var fs = require('fs');
-
 var app = express();
-var router = express.Router();
-//var db = new Datastore({filename:__dirname + 'IDEmailData.db', autoload:true});
 
-var path = __dirname + '/views/';
+var viewpath = __dirname + '/views/';
 
-router.use(function (req,res,next) {
-  console.log("/" + req.method);
-  next();
+app.get("/",function(req,res){
+  res.sendFile(viewpath + "index.html");
 });
 
-router.get("/",function(req,res){
-  //console.log(req.query);
-  //console.log('notifyFrequency = ' + req.query['notifyFrequency']);
-  res.sendFile(path + "index.html");
-});
+app.use(bodyParser.urlencoded({extended: true}));
 
-router.use('/confirm', bodyParser());
-
-router.post("/confirm", function(req,res){
-  //console.log(req);
-
+app.post("/confirm", function(req,res){
   var name = req.body.name;
   var studentIDStr = req.body.studentID;
   var email = req.body.email;
@@ -37,11 +24,9 @@ router.post("/confirm", function(req,res){
   // 
 
   if (studentIDNum < 10000000 || studentIDNum >= 100000000) {
-    console.log("ID Not legit");
+    return;
     //res.render('/index', { flash: { type: 'alert-danger', messages: 'ID Number not valid' }});
   } else {
-    console.log("ID LEGIT");
-    //res.sendFile(path + "index.html");
   }
 
   var notifyFreqDays;
@@ -63,17 +48,13 @@ router.post("/confirm", function(req,res){
       return console.log(err);
     }
   });
-  
-  //db.insert({name:name, studentID:studentIDNum, email:email, notifyFrequency:notifyFrequencyDays});
 
   // TODO: Send them back to special confirmation page
-  res.sendFile(path + "index.html");
+  res.sendFile(viewpath + "index.html");
 });
 
-app.use("/",router);
-
-app.use("*",function(req,res){
-  res.sendFile(path + "404.html");
+app.get("*",function(req,res){
+  res.sendFile(viewpath + "404.html");
 });
 
 app.listen(3000,function(){

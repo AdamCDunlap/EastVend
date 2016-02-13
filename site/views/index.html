@@ -31,22 +31,23 @@
           East Dorm Vending Swipe Payment
         </h1>
 
-        If you would like to be able to use your student ID to buy soda, fill out the below form. The Student ID number is used to recognize when your Student ID is swiped in the card reader. Once you swipe, an email will be sent to the provided address with several different payment methods. Failure to pay will result in you being tracked down.
+        If you would like to be able to use your student ID to buy soda, fill out the below form.
+        The Student ID number is used to recognize when your Student ID is swiped in the card reader.
+        Once you swipe, an email will be sent to the provided address with several different payment methods.
+        Failure to pay will result in you being tracked down.
 
-        <!--<div class="jumbotron">-->
-        <!--<iframe src="https://docs.google.com/forms/d/1tN3jZ9twPt40nz90_fUTq-6QIUSgP7Cf_gXiVeLHtm8/viewform?embedded=true" width="760" height="700" frameborder="0" marginheight="0" marginwidth="0">Loading Google Form...</iframe>-->
-        <form style="width:250px", id="idEmailForm", method='POST', action="/confirm">
+        <form id="idEmailForm", method='POST', action="/confirm">
           <div class="form-group">
             <label for="name">Name</label>
-            <input type="text" class="form-control" name="name" id="name" placeholder="East Dorm" required>
+            <input type="text" class="form-control" name="name" id="name" placeholder="East Dorm" size="20" required>
           </div>
           <div class="form-group">
             <label for="studentID">Student ID Number</label>
-            <input type="number" class="form-control" name="studentID" id="studentID" placeholder="40000000" required>
+            <input type="number" class="form-control" name="studentID" id="studentID" placeholder="40000000" size="8" required>
           </div>
           <div class="form-group">
             <label for="email">Email Address</label>
-            <input type="email" class="form-control" name="email" id="email" placeholder="east@hmc.edu" required>
+            <input type="email" class="form-control" name="email" id="email" placeholder="east@hmc.edu" size="20" required>
             <span id="helpBlock" class="help-block">Email must be a 5C School Email address. A confirmation email will be sent.</span>
           </div>
           <div class="radio">
