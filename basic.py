@@ -4,11 +4,15 @@ import RPi.GPIO as GPIO
 import serial
 import random
 import time
+import logging
 
 # TODO
 coin_pin = 25
 #pins that listen to input buttons
 selection_pins = [4, 17, 27, 22, 10, 9, 11]
+selection_names = ['Random', 'Rootbeer', 'Coke',
+                   'Cherry Coke', 'Sprite',
+                   'Mountain Dew', 'Canada Dry']
 #chute correspondence: (1,2), 3, 4, 5, 6, 7 8
 #so the random button shares two chutes, 1 and 2
 
@@ -43,9 +47,11 @@ def get_selection():
 # Waiting for motor
 
 wait_for_money, wait_for_selection = range(2)
+got_money_ts = None
 
 def main():
     setup_raspi_gpio()
+    logging.basicConfig(filename='time-data.log', filemode='a', format='%(asctime)s %(message)s', level=logging.DEBUG)
 
     state = wait_for_money
     # list that keeps track of which chutes are full (1 means no soda)
@@ -54,16 +60,20 @@ def main():
     selection = 0
 
     while True:
-        chute_fullness[:] = get_chute_fullness()
         if state == wait_for_money:
             if not GPIO.input(coin_pin) or valid_swipe_occured():
                 print 'Got money'
                 state = wait_for_selection
+                got_money_ts = time.time()
         elif state == wait_for_selection:
             selection = get_selection()
+            chute_fullness[:] = get_chute_fullness()
             if selection == 1: #user chose random soda
                 selection = random.choice([0,0,0,1,1,1,1,2,3,4,5,6,7])
             if selection > 0 and not chute_fullness[selection]:
+                select_time = time.time() - got_money_ts
+                msg = '%s,%.1f' % (selection_names[selection-1], select_time)
+                logging.info(msg)
                 print 'Dispensing', selection
                 ser.write(chr(selection))
                 state = wait_for_money
