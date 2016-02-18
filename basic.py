@@ -1,10 +1,12 @@
 import sys
+import os
 import itertools
 import RPi.GPIO as GPIO
 import serial
 import random
 import time
 import logging
+
 
 # TODO
 coin_pin = 25
@@ -49,9 +51,21 @@ def get_selection():
 wait_for_money, wait_for_selection = range(2)
 got_money_ts = None
 
+def setup_logging():
+    eastVendDir = sys.argv[1]
+
+    logDir = '%s/data/log' % eastVendDir
+    if not os.path.exists(dataDir):
+        os.makedirs(dataDir)
+    
+    logging.basicConfig(filename='%s/time-data.log' % logDir,
+                        filemode='a',
+                        format='%(asctime)s %(message)s',
+                        level=logging.DEBUG)
+
 def main():
     setup_raspi_gpio()
-    logging.basicConfig(filename='time-data.log', filemode='a', format='%(asctime)s %(message)s', level=logging.DEBUG)
+    setup_logging()
 
     state = wait_for_money
     # list that keeps track of which chutes are full (1 means no soda)

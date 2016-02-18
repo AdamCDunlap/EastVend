@@ -1,8 +1,13 @@
-from flask import Flask, render_template, request
+from flask import Flask, request
 import sys
-app = Flask(__name__, static_url_path='views', template_folder='views')
+import os
+app = Flask(__name__, static_folder='views', template_folder='views')
 
 eastVendDir = sys.argv[1]
+
+dataDir = '%s/data/users' % eastVendDir
+if not os.path.exists(dataDir):
+    os.makedirs(dataDir)
 
 @app.route("/")
 def serve_index():
@@ -20,7 +25,7 @@ def store_email():
     except:
         return
     else:
-        if studentIDNum < 10000000 || studentIDNum >= 100000000:
+        if studentIDNum < 10000000 or studentIDNum >= 100000000:
             return
 
     # TODO: Validation!
@@ -33,7 +38,7 @@ def store_email():
                      if notifyFrequencyStr in freqLookup else 0
 
     toWriteToFile = '0\0000\000%s\000%d\000%s' % (email, notifyFreqDays, name)
-    filePath = '%s/data/%d' % (eastVendDir, studentIDNum)
+    filePath = '%s/%d' % (dataDir, studentIDNum)
 
     print "Writing ``%s'' to file ``%s''" % (toWriteToFile, filePath)
 
@@ -47,7 +52,7 @@ def store_email():
     return serve_index()
 
 @app.errorhandler(404)
-def not_found():
+def not_found(error):
     return app.send_static_file('404.html')
 
 if __name__ == "__main__":

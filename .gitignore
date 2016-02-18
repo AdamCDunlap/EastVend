@@ -1,6 +1,7 @@
 .*.swp
 *~
 build-*/
+*.pyc
 tmp/
 doc/
 data/
