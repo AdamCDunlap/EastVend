@@ -17,6 +17,8 @@ selection_names = ['Random', 'Rootbeer', 'Coke',
                    'Mountain Dew', 'Canada Dry']
 #chute correspondence: (1,2), 3, 4, 5, 6, 7 8
 #so the random button shares two chutes, 1 and 2
+TIMEOUT = 360 # Seconds
+
 
 ser = serial.Serial('/dev/ttyUSB0', 9600)
 
@@ -57,7 +59,7 @@ def setup_logging():
     logDir = '%s/data/log' % eastVendDir
     if not os.path.exists(dataDir):
         os.makedirs(dataDir)
-    
+
     logging.basicConfig(filename='%s/time-data.log' % logDir,
                         filemode='a',
                         format='%(asctime)s %(message)s',
@@ -84,12 +86,15 @@ def main():
             chute_fullness[:] = get_chute_fullness()
             if selection == 1: #user chose random soda
                 selection = random.choice([0,0,0,1,1,1,1,2,3,4,5,6,7])
-            if selection > 0 and not chute_fullness[selection]:
+            elif selection > 0 and not chute_fullness[selection]:
                 select_time = time.time() - got_money_ts
                 msg = '%s,%.1f' % (selection_names[selection-1], select_time)
                 logging.info(msg)
                 print 'Dispensing', selection
                 ser.write(chr(selection))
+                state = wait_for_money
+            elif selection = -1 and time.time() > got_money_ts + TIMEOUT:
+                print 'Disregarding ``money insertion'' 6 minutes old.'
                 state = wait_for_money
 
 if __name__ == '__main__':
