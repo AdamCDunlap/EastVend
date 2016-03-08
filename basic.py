@@ -55,8 +55,8 @@ def setup_logging():
     eastVendDir = sys.argv[1]
 
     logDir = '%s/data/log' % eastVendDir
-    if not os.path.exists(dataDir):
-        os.makedirs(dataDir)
+    if not os.path.exists(logDir):
+        os.makedirs(logDir)
     
     logging.basicConfig(filename='%s/time-data.log' % logDir,
                         filemode='a',
@@ -67,7 +67,8 @@ def main():
     setup_raspi_gpio()
     setup_logging()
 
-    state = wait_for_money
+    state = wait_for_money if len(sys.argv) < 3 else wait_for_selection
+    got_money_ts = time.time()
     # list that keeps track of which chutes are full (1 means no soda)
     chute_fullness = [0, 0, 0, 0, 0, 0, 0, 0]
 
@@ -80,10 +81,15 @@ def main():
                 state = wait_for_selection
                 got_money_ts = time.time()
         elif state == wait_for_selection:
+            # If no button has been hit for 5 minutes, cancel
+            if time.time() - got_money_ts > 300:
+                state = wait_for_money
+                msg = 'Timed out'
+                logging.info(msg)
             selection = get_selection()
             chute_fullness[:] = get_chute_fullness()
             if selection == 1: #user chose random soda
-                selection = random.choice([0,0,0,1,1,1,1,2,3,4,5,6,7])
+                selection = random.choice([0,0,0,0,0,1,1,1,1,1,2,3,4,5,6,7])
             if selection > 0 and not chute_fullness[selection]:
                 select_time = time.time() - got_money_ts
                 msg = '%s,%.1f' % (selection_names[selection-1], select_time)
