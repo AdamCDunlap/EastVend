@@ -6,6 +6,8 @@ import serial
 import random
 import time
 import logging
+import Queue
+import thread
 
 
 # TODO
@@ -17,6 +19,8 @@ selection_names = ['Random', 'Rootbeer', 'Coke',
                    'Mountain Dew', 'Canada Dry']
 #chute correspondence: (1,2), 3, 4, 5, 6, 7 8
 #so the random button shares two chutes, 1 and 2
+
+RFID_PATH = '/dev/tty'
 
 ser = serial.Serial('/dev/ttyUSB0', 9600)
 
@@ -57,11 +61,19 @@ def setup_logging():
     logDir = '%s/data/log' % eastVendDir
     if not os.path.exists(logDir):
         os.makedirs(logDir)
-    
+
     logging.basicConfig(filename='%s/time-data.log' % logDir,
                         filemode='a',
                         format='%(asctime)s %(message)s',
                         level=logging.DEBUG)
+
+def mk_populate_queue_fn(queue):
+    def listener():
+        f = open(RFID_PATH)
+        while True:
+            raw = f.readline()[2:-3]
+            if len(raw) == 8:
+                queue.put(int(raw))
 
 def main():
     setup_raspi_gpio()
@@ -69,6 +81,12 @@ def main():
 
     state = wait_for_money if len(sys.argv) < 3 else wait_for_selection
     got_money_ts = time.time()
+
+    # Set up queue of ID numbers and thread to populate it
+    #  Can use `id_queue.empty()` and `id_queue.get()`
+    id_queue = Queue.Queue()
+    thread.start_new_thread(mk_populate_queue_fn(id_queue))
+
     # list that keeps track of which chutes are full (1 means no soda)
     chute_fullness = [0, 0, 0, 0, 0, 0, 0, 0]
 
