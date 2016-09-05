@@ -107,7 +107,8 @@ def main():
             selection = get_selection()
             chute_fullness[:] = get_chute_fullness()
             if selection == 1: #user chose random soda
-                selection = random.choice([0,0,0,0,0,1,1,1,1,1,2,3,4,5,6,7])
+                selection = random.choice([2,3,4,5,6,7]) if random.random() < .15 else random.choice([0,1])
+                #selection = random.choice([0,1])
             if selection > 0 and not chute_fullness[selection]:
                 select_time = time.time() - got_money_ts
                 msg = '%s,%.1f' % (selection_names[selection-1], select_time)
