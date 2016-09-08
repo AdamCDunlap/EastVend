@@ -3,7 +3,7 @@ import sys
 import os
 app = Flask(__name__, static_folder='views', template_folder='views')
 
-eastVendDir = sys.argv[1]
+eastVendDir = '/home/pi/EastVend'
 
 dataDir = '%s/data/users' % eastVendDir
 if not os.path.exists(dataDir):

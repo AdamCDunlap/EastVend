@@ -25,6 +25,8 @@ RFID_PATH = '/dev/tty'
 
 ser = serial.Serial('/dev/ttyUSB0', 9600)
 
+eastVendDir = '/home/pi/EastVend/'
+
 def setup_raspi_gpio():
     GPIO.setmode(GPIO.BCM)
     for pin in itertools.chain(selection_pins, [coin_pin]):
@@ -57,8 +59,6 @@ wait_for_money, wait_for_selection = range(2)
 got_money_ts = None
 
 def setup_logging():
-    eastVendDir = sys.argv[1]
-
     logDir = '%s/data/log' % eastVendDir
     if not os.path.exists(logDir):
         os.makedirs(logDir)
@@ -83,7 +83,7 @@ def main():
     setup_raspi_gpio()
     setup_logging()
 
-    state = wait_for_money if len(sys.argv) < 3 else wait_for_selection
+    state = wait_for_money
     got_money_ts = time.time()
 
     # Set up queue of ID numbers and thread to populate it
