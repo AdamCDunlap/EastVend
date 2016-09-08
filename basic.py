@@ -8,6 +8,7 @@ import time
 import logging
 import Queue
 import thread
+import signal
 
 
 # TODO
@@ -76,6 +77,9 @@ def mk_populate_queue_fn(queue):
                 queue.put(int(raw))
 
 def main():
+    with open('/tmp/vend.pid', 'w') as f:
+        f.write(str(os.getpid()))
+
     setup_raspi_gpio()
     setup_logging()
 
@@ -86,6 +90,11 @@ def main():
     #  Can use `id_queue.empty()` and `id_queue.get()`
     id_queue = Queue.Queue()
     thread.start_new_thread(mk_populate_queue_fn(id_queue))
+
+    # If this process gets a USR1 signal, then pretend money was just inserted
+    def pretend_got_money(signal, frame):
+        state = wait_for_selection
+    signal.signal(signal.SIGUSR1, pretend_got_money)
 
     # list that keeps track of which chutes are full (1 means no soda)
     chute_fullness = [0, 0, 0, 0, 0, 0, 0, 0]
@@ -108,7 +117,6 @@ def main():
             chute_fullness[:] = get_chute_fullness()
             if selection == 1: #user chose random soda
                 selection = random.choice([2,3,4,5,6,7]) if random.random() < .15 else random.choice([0,1])
-                #selection = random.choice([0,1])
             if selection > 0 and not chute_fullness[selection]:
                 select_time = time.time() - got_money_ts
                 msg = '%s,%.1f' % (selection_names[selection-1], select_time)

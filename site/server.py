@@ -56,4 +56,6 @@ def not_found(error):
     return app.send_static_file('404.html')
 
 if __name__ == "__main__":
+    with open('/tmp/site.pid', 'w') as f:
+        f.write(str(os.getpid()))
     app.run(host='0.0.0.0', port=80, debug=True)
