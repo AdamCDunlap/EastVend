@@ -88,12 +88,11 @@ def main():
 
     # Set up queue of ID numbers and thread to populate it
     #  Can use `id_queue.empty()` and `id_queue.get()`
-    id_queue = Queue.Queue()
+    #id_queue = Queue.Queue()
     #thread.start_new_thread(mk_populate_queue_fn(id_queue))
 
     # If this process gets a USR1 signal, then pretend money was just inserted
     def pretend_got_money(signal, frame):
-        print 'Got signal, can dispense now'
         state[0] = wait_for_selection
     signal.signal(signal.SIGUSR1, pretend_got_money)
 
@@ -102,9 +101,20 @@ def main():
 
     selection = 0
 
+    coin_pin_time = time.time()
+    coin_pin_last = 1
+
     while True:
+        coin_pin_now = GPIO.input(coin_pin)
+        if coin_pin_now != coin_pin_last:
+            now = time.time()
+            if (coin_pin_now == 1):
+                print "From %s to %s after %s seconds" % (coin_pin_last,
+                        coin_pin_now, now)
+            coin_pin_time = now
+            coin_pin_last = coin_pin_now
         if state[0] == wait_for_money:
-            if not GPIO.input(coin_pin) or valid_swipe_occured():
+            if (coin_pin_last == 0) and (time.time() - coin_pin_time > 0.001) or valid_swipe_occured():
                 print 'Got money'
                 state[0] = wait_for_selection
                 got_money_ts = time.time()
