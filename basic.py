@@ -83,17 +83,18 @@ def main():
     setup_raspi_gpio()
     setup_logging()
 
-    state = wait_for_money
+    state = [wait_for_money]
     got_money_ts = time.time()
 
     # Set up queue of ID numbers and thread to populate it
     #  Can use `id_queue.empty()` and `id_queue.get()`
     id_queue = Queue.Queue()
-    thread.start_new_thread(mk_populate_queue_fn(id_queue))
+    #thread.start_new_thread(mk_populate_queue_fn(id_queue))
 
     # If this process gets a USR1 signal, then pretend money was just inserted
     def pretend_got_money(signal, frame):
-        state = wait_for_selection
+        print 'Got signal, can dispense now'
+        state[0] = wait_for_selection
     signal.signal(signal.SIGUSR1, pretend_got_money)
 
     # list that keeps track of which chutes are full (1 means no soda)
@@ -102,28 +103,28 @@ def main():
     selection = 0
 
     while True:
-        if state == wait_for_money:
+        if state[0] == wait_for_money:
             if not GPIO.input(coin_pin) or valid_swipe_occured():
                 print 'Got money'
-                state = wait_for_selection
+                state[0] = wait_for_selection
                 got_money_ts = time.time()
-        elif state == wait_for_selection:
+        elif state[0] == wait_for_selection:
             # If no button has been hit for 5 minutes, cancel
             if time.time() - got_money_ts > 300:
-                state = wait_for_money
+                state[0] = wait_for_money
                 msg = 'Timed out'
                 logging.info(msg)
             selection = get_selection()
             chute_fullness[:] = get_chute_fullness()
             if selection == 1: #user chose random soda
                 selection = random.choice([2,3,4,5,6,7]) if random.random() < .15 else random.choice([0,1])
-            if selection > 0 and not chute_fullness[selection]:
+            if selection > 0 and not chute_fullness[selection-1]:
                 select_time = time.time() - got_money_ts
                 msg = '%s,%.1f' % (selection_names[selection-1], select_time)
                 logging.info(msg)
                 print 'Dispensing', selection
                 ser.write(chr(selection))
-                state = wait_for_money
+                state[0] = wait_for_money
 
 if __name__ == '__main__':
     main()
