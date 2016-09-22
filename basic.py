@@ -15,8 +15,8 @@ import signal
 coin_pin = 25
 #pins that listen to input buttons
 selection_pins = [4, 17, 27, 22, 10, 9, 11]
-selection_names = ['Random', 'Rootbeer', 'Coke',
-                   'Cherry Coke', 'Sprite',
+selection_names = ['Random', 'Coke', 'Root Beer',
+                   'Sprite', 'Fanta',
                    'Mountain Dew', 'Canada Dry']
 #chute correspondence: (1,2), 3, 4, 5, 6, 7 8
 #so the random button shares two chutes, 1 and 2
@@ -110,11 +110,11 @@ def main():
             now = time.time()
             if (coin_pin_now == 1):
                 logging.info("From %s to %s after %s seconds" % (coin_pin_last,
-                        coin_pin_now, now))
+                        coin_pin_now, now - coin_pin_time))
             coin_pin_time = now
             coin_pin_last = coin_pin_now
         if state[0] == wait_for_money:
-            if (coin_pin_last == 0) and (time.time() - coin_pin_time > 0.001) or valid_swipe_occured():
+            if (coin_pin_last == 0) and (time.time() - coin_pin_time > 0.050) or valid_swipe_occured():
                 print 'Got money'
                 state[0] = wait_for_selection
                 got_money_ts = time.time()

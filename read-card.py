@@ -55,6 +55,8 @@ def try_charge(id_num_str):
         return False
 
 def main():
+    with open('/tmp/read-card.pid', 'w') as f:
+        f.write(str(os.getpid()))
     in_file = open(infile_path, "rb")
     event = in_file.read(EVENT_SIZE)
 
@@ -86,7 +88,7 @@ def main():
     in_file.close()
 
 def sendmail(msg, to):
-
+    pass
 
 if __name__ == '__main__':
     main()
