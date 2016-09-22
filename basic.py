@@ -109,8 +109,8 @@ def main():
         if coin_pin_now != coin_pin_last:
             now = time.time()
             if (coin_pin_now == 1):
-                print "From %s to %s after %s seconds" % (coin_pin_last,
-                        coin_pin_now, now)
+                logging.info("From %s to %s after %s seconds" % (coin_pin_last,
+                        coin_pin_now, now))
             coin_pin_time = now
             coin_pin_last = coin_pin_now
         if state[0] == wait_for_money:
