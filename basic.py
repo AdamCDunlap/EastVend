@@ -124,17 +124,24 @@ def main():
                 state[0] = wait_for_money
                 msg = 'Timed out'
                 logging.info(msg)
+
             selection = get_selection()
             chute_fullness[:] = get_chute_fullness()
+
             if selection == 1: #user chose random soda
                 selection = random.choice([2,3,4,5,6,7]) if random.random() < .15 else random.choice([0,1])
-            if selection > 0 and not chute_fullness[selection-1]:
-                select_time = time.time() - got_money_ts
-                msg = '%s,%.1f' % (selection_names[selection-1], select_time)
-                logging.info(msg)
-                print 'Dispensing', selection
-                ser.write(chr(selection))
-                state[0] = wait_for_money
+            if selection > 0:
+                chute_fullness[:] = get_chute_fullness()
+                logging.info("Chute fullness is " + str(chute_fullness))
+                if chute_fullness[selection-1]:
+                    print "Soda %s is all out" % selection_names[selection - 1]
+                else:
+                    select_time = time.time() - got_money_ts
+                    msg = '%s,%.1f' % (selection_names[selection-1], select_time)
+                    logging.info(msg)
+                    print 'Dispensing', selection
+                    ser.write(chr(selection))
+                    state[0] = wait_for_money
 
 if __name__ == '__main__':
     main()
