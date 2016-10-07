@@ -71,7 +71,10 @@ def main():
                 if give_them_soda:
                     log('Giving soda')
                     with open('/tmp/vend.pid', 'r') as pidf:
-                        os.kill(int(pidf.read()), signal.SIGUSR1)
+                        try:
+                            os.kill(int(pidf.read()), signal.SIGUSR1)
+                        except OSError:
+                            print "It's already dead"
             if number is not None:
                 l.append(number)
 
