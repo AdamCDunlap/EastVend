@@ -41,6 +41,7 @@ def valid_swipe_occured():
 def get_chute_fullness():
     byte = ser.read()
     bits = [int(x) for x in bin(ord(byte))[2:].zfill(8)]
+    bits.reverse()
     return bits
 
 last_states = [False for _ in selection_pins]
@@ -146,7 +147,7 @@ def main():
             if selection > 0:
                 chute_fullness[:] = get_chute_fullness()
                 logging.info("Chute fullness is " + str(chute_fullness))
-                if chute_fullness[selection-1]:
+                if chute_fullness[selection]:
                     print "Soda %s is all out" % selection_names[selection - 1]
                 else:
                     select_time = time.time() - got_money_ts[0]
