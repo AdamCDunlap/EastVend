@@ -56,7 +56,7 @@ def get_selection():
     last_states[:] = states
 
     for i,st in enumerate(states):
-        if st and now - last_rise_times[i] > .3:
+        if st and now - last_rise_times[i] > .15:
             return i+1
 
     return 0
@@ -112,13 +112,11 @@ def main():
     # list that keeps track of which chutes are full (1 means no soda)
     chute_fullness = [0, 0, 0, 0, 0, 0, 0, 0]
 
-    selection = 0
-
     coin_pin_time = time.time()
     coin_pin_last = 1
 
     while True:
-        selection = get_selection()
+        button_pressed = get_selection()
 
         coin_pin_now = GPIO.input(coin_pin)
         if coin_pin_now != coin_pin_last:
@@ -142,19 +140,39 @@ def main():
 
             chute_fullness[:] = get_chute_fullness()
 
-            if selection == 1: #user chose random soda
-                selection = random.choice([2,3,4,5,6,7]) if random.random() < .15 else random.choice([0,1])
-            if selection > 0:
-                chute_fullness[:] = get_chute_fullness()
+            if button_pressed == 1: #user chose random soda
+                list_of_nonempty_rand_chutes = [i+1 for i,x in enumerate(chute_fullness[:2]) if x == 1]
+                list_of_nonempty_other_chutes = [i+1 for i,x in enumerate(chute_fullness[2:]) if x == 1]
+
+                choices = None
+                if len(list_of_nonempty_rand_chutes) == 0:
+                    if len(list_of_nonempty_other_chutes) == 0:
+                        logging.error('Machine is all out of soda!')
+                        choices = [0]
+                    else:
+                        choices = list_of_nonempty_rand_chutes
+                else:
+                    if len(list_of_nonempty_other_chutes) == 0:
+                        choices = list_of_nonempty_rand_chutes
+                    else:
+                        choices = list_of_nonempty_other_chutes \
+                            if random.random() < .15 \
+                            else list_of_nonempty_rand_chutes
+
+                select_time = time.time() - got_money_ts[0]
+                logging.info(msg = '%s,%.1f' % ('Random', select_time))
+                ser.write(chr(random.choice(choices)))
+                state[0] = wait_for_money
+            elif button_pressed > 1:
                 logging.info("Chute fullness is " + str(chute_fullness))
-                if chute_fullness[selection]:
-                    print "Soda %s is all out" % selection_names[selection - 1]
+                chute = button_pressed
+                if chute_fullness[chute]:
+                    logging.info("All out of soda {} ({})".format(selection_names[chute-1], chute))
                 else:
                     select_time = time.time() - got_money_ts[0]
-                    msg = '%s,%.1f' % (selection_names[selection-1], select_time)
-                    logging.info(msg)
-                    print 'Dispensing', selection
-                    ser.write(chr(selection))
+                    logging.info('%s,%.1f' % (selection_names[chute-1],
+                                              select_time))
+                    ser.write(chr(chute))
                     state[0] = wait_for_money
 
 if __name__ == '__main__':
